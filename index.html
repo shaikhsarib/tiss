@@ -36,7 +36,6 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* Highlighting Logic */
         .btn-yes { @apply border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 transition-all duration-200 opacity-30; }
         .btn-yes.active { 
             @apply bg-emerald-600 border-emerald-700 text-white opacity-100 scale-105;
@@ -49,7 +48,6 @@
             box-shadow: 0 4px 15px -3px rgba(220, 38, 38, 0.4);
         }
 
-        /* Row Highlighting */
         .row-present { background-color: rgba(16, 185, 129, 0.12) !important; border-left: 4px solid #10b981; }
         .row-absent { background-color: rgba(239, 68, 68, 0.1) !important; border-left: 4px solid #ef4444; }
 
@@ -67,7 +65,6 @@
 </head>
 <body class="text-slate-900 pb-20">
 
-    <!-- Premium Header -->
     <header class="header-curve text-white pt-12 pb-24 px-6 text-center shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
             <svg width="100%" height="100%"><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/></pattern><rect width="100%" height="100%" fill="url(#grid)" /></svg>
@@ -82,7 +79,6 @@
 
     <main class="max-w-7xl mx-auto px-4 -mt-16 relative z-20">
         
-        <!-- Dashboard Stats (Visual Match to your screenshot) -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
             <div class="glass-card p-8 rounded-[2.5rem] border-b-4 border-slate-300">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Database</p>
@@ -102,18 +98,15 @@
             </div>
         </div>
 
-        <!-- Master Controller -->
         <div class="glass-card p-3 rounded-full mb-6 flex flex-col md:flex-row items-center gap-4 search-shadow">
             <div class="relative flex-grow w-full md:ml-4">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
                     <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
-                <!-- Search Input -->
                 <input type="text" id="searchInput" oninput="toggleClearBtn(); render();" 
                     class="w-full pl-12 pr-12 py-4 bg-transparent outline-none text-base font-semibold"
                     placeholder="Search UID or Name...">
                 
-                <!-- AUTO CLEAR (X) BUTTON -->
                 <button id="clearBtn" onclick="clearSearch()" class="hidden absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-red-500 transition-colors">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
@@ -138,7 +131,6 @@
             </div>
         </div>
 
-        <!-- Add Student Dropdown -->
         <div id="enrollmentDropdown" class="enroll-dropdown mb-10">
             <div class="glass-card p-8 rounded-[2.5rem] bg-white border-emerald-200 shadow-2xl relative">
                 <button onclick="toggleEnrollment()" class="absolute top-6 right-6 text-slate-400 hover:text-red-500">
@@ -154,7 +146,6 @@
             </div>
         </div>
 
-        <!-- Attendance Data Table -->
         <div class="glass-card rounded-[3rem] overflow-hidden shadow-xl">
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
@@ -173,12 +164,28 @@
     </main>
 
     <script>
+        // UPDATED DATABASE WITH ALL CSV STUDENTS
         let students = [
             { UID: "24061026", Name: "Ram Rohit Kumar Rambharosh", Course: "BSc Software Development", status: "pending", guardians: 0 },
             { UID: "24061027", Name: "Aman Verma", Course: "BSc Software Development", status: "pending", guardians: 0 },
             { UID: "24061028", Name: "Ravi Kumar Singh", Course: "BSc Software Development", status: "pending", guardians: 0 },
             { UID: "24061029", Name: "Suresh Patel", Course: "BSc Software Development", status: "pending", guardians: 0 },
-            { UID: "24061030", Name: "Vikram Yadav", Course: "BSc Software Development", status: "pending", guardians: 0 }
+            { UID: "24061030", Name: "Vikram Yadav", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061031", Name: "Deepak Sharma", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061032", Name: "Mohit Gupta", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061033", Name: "Karan Mehta", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061034", Name: "Nikhil Jain", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061035", Name: "Rahul Das", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061036", Name: "Ajay Mishra", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061037", Name: "Sunil Choudhary", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061038", Name: "Manish Tiwari", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061039", Name: "Pankaj Roy", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061040", Name: "Arjun Nair", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061041", Name: "Rohan Kapoor", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061042", Name: "Ankit Saxena", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061043", Name: "Vivek Pandey", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061044", Name: "Harsh Vardhan", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061045", Name: "Gaurav Singh", Course: "BSc Software Development", status: "pending", guardians: 0 }
         ];
 
         function toggleEnrollment() {
@@ -290,7 +297,6 @@
             const absent = students.filter(x => x.status === 'no').length;
             const guests = students.reduce((a, b) => a + b.guardians, 0);
 
-            // Prepare Summary Rows (As requested: Different columns for counts)
             const summaryTable = [
                 ["TISS SSE ATTENDANCE OFFICIAL REPORT"],
                 ["Exported on:", new Date().toLocaleString()],
@@ -303,7 +309,6 @@
                 ["UID", "NAME", "PROGRAM", "STATUS", "GUESTS"]
             ];
 
-            // Prepare Student Data Rows
             const studentRows = students.map(s => [
                 s.UID, 
                 s.Name, 
@@ -312,16 +317,11 @@
                 s.guardians
             ]);
 
-            // Combine Summary + Data
             const finalData = summaryTable.concat(studentRows);
-
-            // Create Worksheet
             const ws = XLSX.utils.aoa_to_sheet(finalData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Attendance Report");
-            
-            // Trigger Download
-            XLSX.writeFile(wb, "TISS_SSE_Attendance_Final.xlsx");
+            XLSX.writeFile(wb, "TISS_SSE_Attendance_Report.xlsx");
         }
 
         window.onload = render;
