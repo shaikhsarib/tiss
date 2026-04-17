@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TISS SSE | Elite Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-emerald: #065f46;
+            --gold-gradient: linear-gradient(to bottom, #cfb53b 0%, #f7ef8a 50%, #ae8625 100%);
+        }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #fdfdfd;
+            background-image: radial-gradient(#e2e8f0 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+            min-height: 100vh;
+        }
+        .gold-brand {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        .header-curve {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+            border-bottom: 5px solid #fbbf24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Highlighting Logic */
+        .btn-yes { @apply border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 transition-all duration-200 opacity-30; }
+        .btn-yes.active { 
+            @apply bg-emerald-600 border-emerald-700 text-white opacity-100 scale-105;
+            box-shadow: 0 4px 15px -3px rgba(5, 150, 105, 0.4);
+        }
+        
+        .btn-no { @apply border-2 border-red-500 text-red-600 hover:bg-red-50 transition-all duration-200 opacity-30; }
+        .btn-no.active { 
+            @apply bg-red-600 border-red-700 text-white opacity-100 scale-105;
+            box-shadow: 0 4px 15px -3px rgba(220, 38, 38, 0.4);
+        }
+
+        /* Row Highlighting */
+        .row-present { background-color: rgba(16, 185, 129, 0.12) !important; border-left: 4px solid #10b981; }
+        .row-absent { background-color: rgba(239, 68, 68, 0.1) !important; border-left: 4px solid #ef4444; }
+
+        .search-shadow { box-shadow: 0 10px 40px -10px rgba(6, 95, 70, 0.12); }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-row { animation: slideIn 0.3s ease-out forwards; }
+        
+        .enroll-dropdown {
+            display: none;
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .enroll-dropdown.active { display: block; }
+    </style>
+</head>
+<body class="text-slate-900 pb-20">
+
+    <!-- Premium Header -->
+    <header class="header-curve text-white pt-12 pb-24 px-6 text-center shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+            <svg width="100%" height="100%"><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/></pattern><rect width="100%" height="100%" fill="url(#grid)" /></svg>
+        </div>
+        <div class="relative z-10">
+            <h1 class="text-3xl md:text-5xl font-extrabold gold-brand uppercase tracking-tighter mb-2">
+                Tata Institute Of Social Sciences
+            </h1>
+            <p class="text-emerald-100 font-medium text-base md:text-xl italic opacity-90">(School of Skill Education)</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 -mt-16 relative z-20">
+        
+        <!-- Dashboard Stats (Visual Match to your screenshot) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <div class="glass-card p-8 rounded-[2.5rem] border-b-4 border-slate-300">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Database</p>
+                <h4 id="statTotal" class="text-5xl font-extrabold text-slate-800 leading-none">0</h4>
+            </div>
+            <div class="glass-card p-8 rounded-[2.5rem] border-b-4 border-emerald-500">
+                <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Present</p>
+                <h4 id="statPresent" class="text-5xl font-extrabold text-emerald-600 leading-none">0</h4>
+            </div>
+            <div class="glass-card p-8 rounded-[2.5rem] border-b-4 border-red-500">
+                <p class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Absent</p>
+                <h4 id="statAbsent" class="text-5xl font-extrabold text-red-500 leading-none">0</h4>
+            </div>
+            <div class="glass-card p-8 rounded-[2.5rem] border-b-4 border-amber-500">
+                <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Guests</p>
+                <h4 id="statGuardians" class="text-5xl font-extrabold text-amber-500 leading-none">0</h4>
+            </div>
+        </div>
+
+        <!-- Master Controller -->
+        <div class="glass-card p-3 rounded-full mb-6 flex flex-col md:flex-row items-center gap-4 search-shadow">
+            <div class="relative flex-grow w-full md:ml-4">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                    <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <!-- Search Input -->
+                <input type="text" id="searchInput" oninput="toggleClearBtn(); render();" 
+                    class="w-full pl-12 pr-12 py-4 bg-transparent outline-none text-base font-semibold"
+                    placeholder="Search UID or Name...">
+                
+                <!-- AUTO CLEAR (X) BUTTON -->
+                <button id="clearBtn" onclick="clearSearch()" class="hidden absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-red-500 transition-colors">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="flex gap-2 w-full md:w-auto">
+                <select id="statusFilter" onchange="render()" class="bg-slate-50 px-6 py-4 rounded-full font-bold text-slate-600 outline-none text-sm">
+                    <option value="all">Filters</option>
+                    <option value="yes">Present</option>
+                    <option value="no">Absent</option>
+                </select>
+
+                <button onclick="toggleEnrollment()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-6 py-4 rounded-full font-black text-xs transition-all border border-emerald-200">
+                    ADD STUDENT
+                </button>
+
+                <button onclick="exportData()" class="bg-[#065f46] hover:bg-emerald-900 text-white px-8 py-4 rounded-full font-bold transition-all shadow-lg">
+                    DOWNLOAD REPORT
+                </button>
+            </div>
+        </div>
+
+        <!-- Add Student Dropdown -->
+        <div id="enrollmentDropdown" class="enroll-dropdown mb-10">
+            <div class="glass-card p-8 rounded-[2.5rem] bg-white border-emerald-200 shadow-2xl relative">
+                <button onclick="toggleEnrollment()" class="absolute top-6 right-6 text-slate-400 hover:text-red-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <h3 class="text-xs font-black text-emerald-600 uppercase mb-6">New Enrollment</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="newUID" placeholder="UID" class="px-6 py-4 rounded-2xl bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500">
+                    <input type="text" id="newName" placeholder="Full Name" class="px-6 py-4 rounded-2xl bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500">
+                    <input type="text" id="newCourse" placeholder="Program" class="px-6 py-4 rounded-2xl bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500">
+                    <button onclick="addNewStudent()" class="bg-emerald-600 text-white rounded-2xl font-black">SAVE STUDENT</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Data Table -->
+        <div class="glass-card rounded-[3rem] overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-slate-50/80">
+                            <th class="px-10 py-6 text-[10px] font-black text-slate-400 uppercase">Student Details</th>
+                            <th class="px-10 py-6 text-[10px] font-black text-slate-400 uppercase">Course</th>
+                            <th class="px-10 py-6 text-[10px] font-black text-slate-400 uppercase text-center">Mark Attendance</th>
+                            <th class="px-10 py-6 text-[10px] font-black text-slate-400 uppercase text-center">Guest Count</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let students = [
+            { UID: "24061026", Name: "Ram Rohit Kumar Rambharosh", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061027", Name: "Aman Verma", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061028", Name: "Ravi Kumar Singh", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061029", Name: "Suresh Patel", Course: "BSc Software Development", status: "pending", guardians: 0 },
+            { UID: "24061030", Name: "Vikram Yadav", Course: "BSc Software Development", status: "pending", guardians: 0 }
+        ];
+
+        function toggleEnrollment() {
+            document.getElementById('enrollmentDropdown').classList.toggle('active');
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = '';
+            toggleClearBtn();
+            render();
+            searchInput.focus();
+        }
+
+        function toggleClearBtn() {
+            const btn = document.getElementById('clearBtn');
+            const val = document.getElementById('searchInput').value;
+            btn.classList.toggle('hidden', val === '');
+        }
+
+        function render() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filter = document.getElementById('statusFilter').value;
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            const filtered = students.filter(s => {
+                const matchesSearch = s.UID.includes(searchTerm) || s.Name.toLowerCase().includes(searchTerm);
+                const matchesFilter = filter === 'all' || s.status === filter;
+                return matchesSearch && matchesFilter;
+            });
+
+            filtered.forEach((s) => {
+                let rowColorClass = "";
+                let statusBadge = "";
+
+                if(s.status === 'yes') {
+                    rowColorClass = "row-present";
+                    statusBadge = `<span class="ml-2 bg-emerald-600 text-white text-[8px] px-2 py-0.5 rounded-md font-bold">PRESENT</span>`;
+                } else if(s.status === 'no') {
+                    rowColorClass = "row-absent";
+                    statusBadge = `<span class="ml-2 bg-red-600 text-white text-[8px] px-2 py-0.5 rounded-md font-bold">ABSENT</span>`;
+                }
+
+                const row = document.createElement('tr');
+                row.className = `${rowColorClass} transition-all duration-300`;
+                row.innerHTML = `
+                    <td class="px-10 py-6">
+                        <div class="text-sm font-extrabold text-slate-800">${s.Name} ${statusBadge}</div>
+                        <div class="text-[10px] font-mono text-emerald-600 font-bold mt-1 tracking-widest">${s.UID}</div>
+                    </td>
+                    <td class="px-10 py-6 text-xs font-bold text-slate-500">${s.Course}</td>
+                    <td class="px-10 py-6">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="setStatus('${s.UID}', 'yes')" class="px-6 py-2 rounded-xl text-[10px] font-black btn-yes ${s.status === 'yes' ? 'active' : ''}">PRESENT</button>
+                            <button onclick="setStatus('${s.UID}', 'no')" class="px-6 py-2 rounded-xl text-[10px] font-black btn-no ${s.status === 'no' ? 'active' : ''}">ABSENT</button>
+                        </div>
+                    </td>
+                    <td class="px-10 py-6 text-center">
+                        <input type="number" min="0" value="${s.guardians}" onchange="setGuards('${s.UID}', this.value)"
+                            class="w-16 px-2 py-2 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-xl text-center font-black outline-none text-sm">
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            updateStats();
+        }
+
+        function setStatus(uid, status) {
+            const s = students.find(x => x.UID === uid);
+            s.status = (s.status === status) ? 'pending' : status;
+            render();
+        }
+
+        function setGuards(uid, val) {
+            students.find(x => x.UID === uid).guardians = parseInt(val) || 0;
+            updateStats();
+        }
+
+        function updateStats() {
+            const total = students.length;
+            const present = students.filter(x => x.status === 'yes').length;
+            const absent = students.filter(x => x.status === 'no').length;
+            const guests = students.reduce((a, b) => a + b.guardians, 0);
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statPresent').innerText = present;
+            document.getElementById('statAbsent').innerText = absent;
+            document.getElementById('statGuardians').innerText = guests;
+        }
+
+        function addNewStudent() {
+            const uid = document.getElementById('newUID').value;
+            const name = document.getElementById('newName').value;
+            const course = document.getElementById('newCourse').value;
+            if(uid && name && course) {
+                students.unshift({ UID: uid, Name: name, Course: course, status: 'pending', guardians: 0 });
+                document.getElementById('newUID').value = '';
+                document.getElementById('newName').value = '';
+                document.getElementById('newCourse').value = '';
+                toggleEnrollment();
+                render();
+            }
+        }
+
+        function exportData() {
+            const total = students.length;
+            const present = students.filter(x => x.status === 'yes').length;
+            const absent = students.filter(x => x.status === 'no').length;
+            const guests = students.reduce((a, b) => a + b.guardians, 0);
+
+            // Prepare Summary Rows (As requested: Different columns for counts)
+            const summaryTable = [
+                ["TISS SSE ATTENDANCE OFFICIAL REPORT"],
+                ["Exported on:", new Date().toLocaleString()],
+                [""],
+                ["OVERALL STATISTICS"],
+                ["DATABASE COUNT", "PRESENT COUNT", "ABSENT COUNT", "TOTAL GUESTS"],
+                [total, present, absent, guests],
+                [""],
+                ["STUDENT BREAKDOWN"],
+                ["UID", "NAME", "PROGRAM", "STATUS", "GUESTS"]
+            ];
+
+            // Prepare Student Data Rows
+            const studentRows = students.map(s => [
+                s.UID, 
+                s.Name, 
+                s.Course, 
+                s.status === 'pending' ? 'NOT MARKED' : s.status.toUpperCase(), 
+                s.guardians
+            ]);
+
+            // Combine Summary + Data
+            const finalData = summaryTable.concat(studentRows);
+
+            // Create Worksheet
+            const ws = XLSX.utils.aoa_to_sheet(finalData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Attendance Report");
+            
+            // Trigger Download
+            XLSX.writeFile(wb, "TISS_SSE_Attendance_Final.xlsx");
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>
